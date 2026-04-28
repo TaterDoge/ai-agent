@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
+  "linter": {
+    "rules": {
+      "performance": {
+        // 禁止使用命名空间导入
+        // "noNamespaceImport": "off"
+      },
+      "style": {
+        // 使用一致性类型定义
+        "useConsistentTypeDefinitions": {
+          "level": "warn",
+          "options": {
+            "style": "type"
+          }
+        }
+      }
+    }
+  }
+}
