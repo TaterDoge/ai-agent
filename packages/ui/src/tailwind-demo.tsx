@@ -1,38 +1,79 @@
+import { Badge } from "./badge";
+import { Button } from "./button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./card";
+import { Input } from "./input";
+import { Label } from "./label";
+import { Separator } from "./separator";
+
 type TailwindDemoProps = {
   appName: string;
 };
 
-const features = [
-  "Shared Tailwind utilities",
-  "Shared theme tokens",
-  "Rendered from @repo/ui",
-];
-
 export function TailwindDemo({ appName }: TailwindDemoProps) {
   return (
-    <section className="w-full max-w-4xl rounded-card border border-white/10 bg-[linear-gradient(135deg,rgba(79,124,255,0.16),rgba(255,255,255,0.04))] p-6 shadow-card backdrop-blur md:p-8">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-4">
-          <span className="inline-flex w-fit items-center rounded-full border border-brand-500/20 bg-brand-50 px-3 py-1 font-semibold text-brand-700 text-xs uppercase tracking-[0.24em]">
-            shared ui
-          </span>
-          <div>
-            <h2 className="font-semibold text-3xl text-white md:text-4xl">
-              Tailwind runs in {appName} and still styles shared TSX.
-            </h2>
+    <Card className="w-full max-w-250 overflow-hidden">
+      <CardHeader className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
+        <div className="grid gap-3">
+          <Badge>shared ui package</Badge>
+          <div className="grid gap-2">
+            <CardTitle className="text-2xl md:text-3xl">
+              Design system is active in {appName}
+            </CardTitle>
+            <CardDescription className="max-w-160">
+              基础组件已经统一消费设计令牌，颜色、层级、圆角和状态反馈保持一致。
+            </CardDescription>
           </div>
         </div>
+
         <div className="grid gap-3 sm:grid-cols-3">
-          {features.map((feature) => (
-            <div
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-medium text-slate-100 text-sm shadow-black/10 shadow-sm"
-              key={feature}
-            >
-              {feature}
-            </div>
-          ))}
+          <div className="rounded-xl border border-border-default bg-surface-canvas px-4 py-3 text-content-secondary text-sm">
+            Shared tokens
+          </div>
+          <div className="rounded-xl border border-border-default bg-surface-canvas px-4 py-3 text-content-secondary text-sm">
+            Shared primitives
+          </div>
+          <div className="rounded-xl border border-border-default bg-surface-canvas px-4 py-3 text-content-secondary text-sm">
+            Shared states
+          </div>
         </div>
-      </div>
-    </section>
+      </CardHeader>
+
+      <CardContent className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+        <div className="grid gap-4 rounded-xl border border-border-default bg-surface-canvas p-5">
+          <div className="grid gap-2">
+            <Label htmlFor={`${appName}-workspace`}>Workspace</Label>
+            <Input
+              defaultValue={`${appName}.workspace.local`}
+              id={`${appName}-workspace`}
+            />
+          </div>
+          <Separator />
+          <div className="flex flex-wrap gap-3">
+            <Button>Primary action</Button>
+            <Button variant="secondary">Secondary action</Button>
+            <Button variant="outline">Outline action</Button>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border-default bg-surface-canvas p-5 text-content-secondary text-sm leading-6">
+          所有应用都通过同一套共享组件输出界面，后续调整主题或组件状态时，只需要维护一处。
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex-wrap gap-3 border-border-default border-t pt-6">
+        <Button asChild variant="ghost">
+          <a href="/design-system" rel="noopener noreferrer" target="_blank">
+            View design system
+          </a>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
