@@ -13,12 +13,8 @@
       },
       "style": {
         // 使用一致性类型定义
-        "useConsistentTypeDefinitions": {
-          "level": "warn",
-          "options": {
-            "style": "type"
-          }
-        }
+        "useConsistentTypeDefinitions": "off",
+        "noExportedImports": "off"
       }
     }
   }
