@@ -1,7 +1,3 @@
-import { Hono } from "hono";
-
-const app = new Hono();
-
-app.get("/health", (c) => c.json({ ok: true, service: "api" }));
+import app from "./app";
 
 export default app;
