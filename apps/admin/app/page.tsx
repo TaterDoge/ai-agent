@@ -11,7 +11,12 @@ import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { Separator } from "@repo/ui/separator";
 
+import { AdminEnvBadge } from "../src/admin-env-badge";
+import { getAdminServerEnv } from "../src/env.server";
+
 export default function Home() {
+  const env = getAdminServerEnv();
+
   return (
     <main className="dark min-h-svh bg-background px-6 py-10 text-foreground md:px-10">
       <section className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -38,6 +43,25 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <p className="text-muted-foreground text-xs uppercase tracking-[0.18em]">
+                  APP_ENV
+                </p>
+                <p className="mt-2 font-semibold text-2xl">{env.APP_ENV}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs uppercase tracking-[0.18em]">
+                  API_BASE_URL
+                </p>
+                <p className="mt-2 font-semibold text-2xl">
+                  {env.API_BASE_URL}
+                </p>
+              </div>
+            </div>
+            <Separator />
+            <AdminEnvBadge />
+            <Separator />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="admin-model">Model alias</Label>
