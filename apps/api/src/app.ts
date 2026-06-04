@@ -87,11 +87,18 @@ const routes = app
       const parsed = PingRequestSchema.safeParse(value);
 
       if (!parsed.success) {
+        const details = parsed.error.issues.map((issue) => ({
+          path: issue.path.join("."),
+          message: issue.message,
+          code: issue.code,
+        }));
+
         const errorMsg = {
           code: BizCode.COMMON_INVALID_REQUEST,
           message: "Invalid request payload",
-          details: parsed.error.flatten(),
+          details,
         };
+
         return c.json(buildFailure(errorMsg, createMeta()), 400);
       }
 
