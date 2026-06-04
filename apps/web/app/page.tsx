@@ -7,15 +7,23 @@ import {
 } from "@repo/contracts";
 import { Card, CardContent } from "@repo/ui/card";
 import { hc, type InferResponseType } from "hono/client";
+import type { Metadata } from "next";
 
-const apiBaseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:8787";
+import { getWebServerEnv } from "../src/env.server";
+import { WebEnvBadge } from "../src/web-env-badge";
+
+export const metadata: Metadata = {
+  title: "AI Agent RPC Validation",
+  description: "Validate shared contracts between the web app and API worker.",
+};
+
 const rpcPayload: PingRequest = { name: "web" };
 
 type PingRpcResponse = InferResponseType<
   ReturnType<typeof hc<AppType>>["rpc"]["system"]["ping"]["$post"]
 >;
 
-async function getPingResponse(): Promise<PingRpcResponse> {
+async function getPingResponse(apiBaseUrl: string): Promise<PingRpcResponse> {
   const client = hc<AppType>(apiBaseUrl);
 
   try {
@@ -39,8 +47,9 @@ async function getPingResponse(): Promise<PingRpcResponse> {
   }
 }
 
-export default async function () {
-  const pingResult = await getPingResponse();
+export default async function Home() {
+  const env = getWebServerEnv();
+  const pingResult = await getPingResponse(env.API_BASE_URL);
   const requestBody = JSON.stringify(rpcPayload, null, 2);
   const responseBody = JSON.stringify(pingResult, null, 2);
 
@@ -58,12 +67,19 @@ export default async function () {
           </div>
           <div className="flex flex-wrap gap-2 text-content-tertiary text-xs">
             <span className="rounded-full border border-border px-3 py-1">
+              server {env.APP_ENV}
+            </span>
+            <span className="rounded-full border border-border px-3 py-1">
+              {env.API_BASE_URL}
+            </span>
+            <span className="rounded-full border border-border px-3 py-1">
               POST /rpc/system/ping
             </span>
             <span className="rounded-full border border-border px-3 py-1">
               {pingResult.ok ? "ok=true" : `code=${pingResult?.error?.code}`}
             </span>
           </div>
+          <WebEnvBadge />
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-2xl border border-border bg-surface-elevated p-4">
               <p className="font-medium text-content-primary text-sm">
