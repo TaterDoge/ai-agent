@@ -1,15 +1,12 @@
 import { Card, CardContent } from "@repo/ui/card";
-import Link from "next/link";
-import { getWebServerEnv } from "../src/env.server";
-import { WebEnvBadge } from "../src/web-env-badge";
+import { getHealth } from "../../../../src/api/system/health.api";
+import { getWebServerEnv } from "../../../../src/env.server";
+import { WebEnvBadge } from "../../../../src/web-env-badge";
 
-const links = [
-  { href: "/verify/system/health", label: "GET /health" },
-  { href: "/verify/system/ping", label: "POST /rpc/system/ping" },
-];
-
-export default function Home() {
+export default async function HealthPage() {
   const env = getWebServerEnv();
+  const result = await getHealth();
+  const responseBody = JSON.stringify(result, null, 2);
 
   return (
     <section className="py-10">
@@ -20,7 +17,7 @@ export default function Home() {
               RPC validation
             </p>
             <h2 className="font-semibold text-2xl text-content-primary tracking-tight">
-              API endpoint verification
+              Health check
             </h2>
           </div>
           <div className="flex flex-wrap gap-2 text-content-tertiary text-xs">
@@ -30,20 +27,20 @@ export default function Home() {
             <span className="rounded-full border border-border px-3 py-1">
               {env.API_BASE_URL}
             </span>
+            <span className="rounded-full border border-border px-3 py-1">
+              GET /health
+            </span>
+            <span className="rounded-full border border-border px-3 py-1">
+              {result.ok ? "ok=true" : `code=${result?.error?.code}`}
+            </span>
           </div>
           <WebEnvBadge />
-          <ul className="space-y-2">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  className="text-content-primary hover:underline"
-                  href={link.href}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+            <p className="font-medium text-content-primary text-sm">Response</p>
+            <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all text-content-secondary text-xs leading-6">
+              {responseBody}
+            </pre>
+          </div>
         </CardContent>
       </Card>
     </section>

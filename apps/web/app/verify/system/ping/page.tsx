@@ -1,0 +1,64 @@
+import type { PingRequest } from "@repo/contracts";
+import { Card, CardContent } from "@repo/ui/card";
+import { postPing } from "../../../../src/api/system/ping.api";
+import { getWebServerEnv } from "../../../../src/env.server";
+import { WebEnvBadge } from "../../../../src/web-env-badge";
+
+const rpcPayload: PingRequest = { name: "web" };
+
+export default async function PingPage() {
+  const env = getWebServerEnv();
+  const result = await postPing(rpcPayload);
+  const requestBody = JSON.stringify(rpcPayload, null, 2);
+  const responseBody = JSON.stringify(result, null, 2);
+
+  return (
+    <section className="py-10">
+      <Card className="overflow-hidden border border-border bg-surface-panel shadow-soft">
+        <CardContent className="space-y-5 p-6">
+          <div className="space-y-2">
+            <p className="font-semibold text-content-tertiary text-xs uppercase tracking-[0.3em]">
+              RPC validation
+            </p>
+            <h2 className="font-semibold text-2xl text-content-primary tracking-tight">
+              Shared request and response contract
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2 text-content-tertiary text-xs">
+            <span className="rounded-full border border-border px-3 py-1">
+              server {env.APP_ENV}
+            </span>
+            <span className="rounded-full border border-border px-3 py-1">
+              {env.API_BASE_URL}
+            </span>
+            <span className="rounded-full border border-border px-3 py-1">
+              POST /rpc/system/ping
+            </span>
+            <span className="rounded-full border border-border px-3 py-1">
+              {result.ok ? "ok=true" : `code=${result?.error?.code}`}
+            </span>
+          </div>
+          <WebEnvBadge />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+              <p className="font-medium text-content-primary text-sm">
+                Request
+              </p>
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all text-content-secondary text-xs leading-6">
+                {requestBody}
+              </pre>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+              <p className="font-medium text-content-primary text-sm">
+                Response
+              </p>
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all text-content-secondary text-xs leading-6">
+                {responseBody}
+              </pre>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}

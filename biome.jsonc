@@ -9,7 +9,9 @@
     "rules": {
       "performance": {
         // 禁止使用命名空间导入
-        "noNamespaceImport": "off"
+        "noNamespaceImport": "off",
+        // 禁止使用桶文件导出
+        "noBarrelFile": "off"
       },
       "style": {
         // 使用一致性类型定义

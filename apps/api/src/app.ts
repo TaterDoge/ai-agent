@@ -1,25 +1,20 @@
-import { zValidator } from "@hono/zod-validator";
-import {
-  type ApiMeta,
-  BizCode,
-  buildFailure,
-  buildSuccess,
-  PingRequestSchema,
-} from "@repo/contracts";
+import type { BizCodeKey } from "@repo/contracts";
+import { BizCode, buildFailure } from "@repo/contracts";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import z from "zod";
-import { getApiEnv } from "./env";
+import type { Bindings } from "./env";
+import routes from "./routes";
+import { createMeta } from "./utils/meta";
 
 type AppErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500 | 504;
 
 class AppError extends Error {
-  code: BizCode;
+  code: BizCodeKey;
   status: AppErrorStatus;
   details?: unknown;
 
   constructor(
-    code: BizCode,
+    code: BizCodeKey,
     message: string,
     status: AppErrorStatus,
     details?: unknown
@@ -31,18 +26,7 @@ class AppError extends Error {
   }
 }
 
-const app = new Hono<{
-  Bindings: {
-    APP_ENV: "development" | "test" | "production";
-  };
-}>();
-
-function createMeta(): ApiMeta {
-  return {
-    requestId: crypto.randomUUID(),
-    timestamp: new Date().toISOString(),
-  };
-}
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.onError((error, c) => {
   const meta = createMeta();
@@ -77,53 +61,15 @@ app.onError((error, c) => {
 });
 
 app.notFound((c) => {
-  const errorMsg = { code: BizCode.COMMON_NOT_FOUND, message: "Not found" };
+  const errorMsg = {
+    code: BizCode.COMMON_NOT_FOUND,
+    message: "Not found",
+  };
   const res = buildFailure(errorMsg, createMeta());
   return c.json(res, 404);
 });
 
-const routes = app
-  .get("/health", (c) => {
-    const env = getApiEnv(c.env);
-    const res = buildSuccess(
-      {
-        service: "api",
-        env: env.APP_ENV,
-      },
-      createMeta()
-    );
-    return c.json(res);
-  })
-  .post(
-    "/rpc/system/ping",
-    zValidator("json", PingRequestSchema, (result, c) => {
-      if (result.success) {
-        return;
-      }
-
-      const res = {
-        code: BizCode.COMMON_INVALID_REQUEST,
-        message: "Invalid request payload",
-        details: z.flattenError(result.error),
-      };
-
-      return c.json(buildFailure(res, createMeta()), 400);
-    }),
-    (c) => {
-      const payload = c.req.valid("json");
-      const env = getApiEnv(c.env);
-      return c.json(
-        buildSuccess(
-          {
-            service: "api",
-            message: `pong, ${payload.name}`,
-            env: env.APP_ENV,
-          },
-          createMeta()
-        )
-      );
-    }
-  );
+app.route("/", routes);
 
 export type AppType = typeof routes;
 
