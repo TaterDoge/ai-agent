@@ -6,6 +6,7 @@ import { WebEnvBadge } from "../src/web-env-badge";
 const links = [
   { href: "/verify/system/health", label: "GET /health" },
   { href: "/verify/system/ping", label: "POST /rpc/system/ping" },
+  { href: "/verify/order/detail", label: "POST /rpc/order/detail" },
 ];
 
 export default function Home() {
