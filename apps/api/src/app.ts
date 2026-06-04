@@ -1,3 +1,4 @@
+import { zValidator } from "@hono/zod-validator";
 import {
   type ApiMeta,
   BizCode,
@@ -7,8 +8,7 @@ import {
 } from "@repo/contracts";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { validator } from "hono/validator";
-
+import z from "zod";
 import { getApiEnv } from "./env";
 
 type AppErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500 | 504;
@@ -96,26 +96,18 @@ const routes = app
   })
   .post(
     "/rpc/system/ping",
-    validator("json", (value, c) => {
-      const parsed = PingRequestSchema.safeParse(value);
-
-      if (!parsed.success) {
-        const details = parsed.error.issues.map((issue) => ({
-          path: issue.path.join("."),
-          message: issue.message,
-          code: issue.code,
-        }));
-
-        const errorMsg = {
-          code: BizCode.COMMON_INVALID_REQUEST,
-          message: "Invalid request payload",
-          details,
-        };
-
-        return c.json(buildFailure(errorMsg, createMeta()), 400);
+    zValidator("json", PingRequestSchema, (result, c) => {
+      if (result.success) {
+        return;
       }
 
-      return parsed.data;
+      const res = {
+        code: BizCode.COMMON_INVALID_REQUEST,
+        message: "Invalid request payload",
+        details: z.flattenError(result.error),
+      };
+
+      return c.json(buildFailure(res, createMeta()), 400);
     }),
     (c) => {
       const payload = c.req.valid("json");
