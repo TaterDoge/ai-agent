@@ -21,7 +21,9 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-separator": "^1.1.7",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "uuidv7": "^1.2.1",
+    "@tanstack/react-query": "^5.101.0"
   },
   "name": "ai-agent",
   "scripts": {
