@@ -1,19 +1,18 @@
+import { env } from "cloudflare:workers";
 import { z } from "zod";
-
-export type AppEnv = "development" | "test" | "production";
-
-export type Bindings = {
-  APP_ENV: AppEnv;
-};
 
 const apiEnvSchema = z.object({
   APP_ENV: z.enum(["development", "test", "production"]),
+  ADMIN_ORIGIN: z.url(),
+  WEB_ORIGIN: z.url(),
 });
 
-export function getApiEnv(bindings: Record<string, unknown>): {
-  APP_ENV: AppEnv;
-} {
+export type ApiEnv = z.infer<typeof apiEnvSchema>;
+
+export function getApiEnv(bindings: CloudflareBindings = env): ApiEnv {
   return apiEnvSchema.parse({
     APP_ENV: bindings.APP_ENV,
+    ADMIN_ORIGIN: bindings.ADMIN_ORIGIN,
+    WEB_ORIGIN: bindings.WEB_ORIGIN,
   });
 }

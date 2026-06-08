@@ -2,19 +2,25 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "api",
   "main": "src/index.ts",
-  "compatibility_date": "2026-04-28",
+  "compatibility_date": "2025-06-01",
   "vars": {
-    "APP_ENV": "development"
+    "APP_ENV": "development",
+    "ADMIN_ORIGIN": "http://localhost:3006",
+    "WEB_ORIGIN": "http://localhost:3005"
   },
   "env": {
     "test": {
       "vars": {
-        "APP_ENV": "test"
+        "APP_ENV": "test",
+        "ADMIN_ORIGIN": "http://localhost:3006",
+        "WEB_ORIGIN": "http://localhost:3005"
       }
     },
     "production": {
       "vars": {
-        "APP_ENV": "production"
+        "APP_ENV": "production",
+        "ADMIN_ORIGIN": "https://ai-agent-admin.pages.dev",
+        "WEB_ORIGIN": "https://ai-agent-web.pages.dev"
       }
     }
   }

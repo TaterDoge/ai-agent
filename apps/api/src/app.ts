@@ -1,76 +1,94 @@
-import type { BizCodeKey } from "@repo/contracts";
+import { env } from "cloudflare:workers";
+import { cors } from "@elysiajs/cors";
 import { BizCode, buildFailure } from "@repo/contracts";
-import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
-import type { Bindings } from "./env";
+import { Elysia } from "elysia";
+import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
+import { z } from "zod";
+import { AppError } from "./core/app-error";
+import { getApiEnv } from "./env";
 import routes from "./routes";
 import { createMeta } from "./utils/meta";
+import { ValidationError } from "./utils/validate";
 
-type AppErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500 | 504;
+export const app = new Elysia({ adapter: CloudflareAdapter })
+  .use(
+    cors({
+      origin: (request) => {
+        const apiEnv = getApiEnv(env);
+        const allowedOrigins = new Set([
+          apiEnv.ADMIN_ORIGIN,
+          apiEnv.WEB_ORIGIN,
+        ]);
+        const origin = request.headers.get("origin");
+        if (!origin) {
+          return true;
+        }
+        return allowedOrigins.has(origin);
+      },
+      methods: ["GET", "POST", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  )
+  .onError(({ code, error, set }) => {
+    const meta = createMeta();
 
-class AppError extends Error {
-  code: BizCodeKey;
-  status: AppErrorStatus;
-  details?: unknown;
+    if (error instanceof AppError) {
+      set.status = error.status;
+      return buildFailure(
+        {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        },
+        meta
+      );
+    }
 
-  constructor(
-    code: BizCodeKey,
-    message: string,
-    status: AppErrorStatus,
-    details?: unknown
-  ) {
-    super(message);
-    this.code = code;
-    this.status = status;
-    this.details = details;
-  }
-}
+    if (error instanceof ValidationError) {
+      set.status = 400;
+      return buildFailure(
+        {
+          code: BizCode.COMMON_INVALID_REQUEST,
+          message: "Invalid request payload",
+          details: z.flattenError(error.error),
+        },
+        meta
+      );
+    }
 
-const app = new Hono<{ Bindings: Bindings }>();
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return buildFailure(
+        {
+          code: BizCode.COMMON_NOT_FOUND,
+          message: "Not found",
+        },
+        meta
+      );
+    }
 
-app.onError((error, c) => {
-  const meta = createMeta();
+    if (code === "PARSE") {
+      set.status = 400;
+      return buildFailure(
+        {
+          code: BizCode.COMMON_INVALID_REQUEST,
+          message: "Invalid request body",
+        },
+        meta
+      );
+    }
 
-  if (error instanceof AppError) {
-    const errorMsg = {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-    };
-    const res = buildFailure(errorMsg, meta);
-    return c.json(res, error.status);
-  }
+    console.error(error);
+    set.status = 500;
+    return buildFailure(
+      {
+        code: BizCode.SYSTEM_INTERNAL_ERROR,
+        message: "Internal server error",
+      },
+      meta
+    );
+  })
+  .use(routes)
+  .compile();
 
-  if (error instanceof HTTPException) {
-    const errorMsg = {
-      code: BizCode.COMMON_INVALID_REQUEST,
-      message: error.message,
-    };
-    const res = buildFailure(errorMsg, meta);
-    return c.json(res, error.status);
-  }
-
-  console.error(error);
-
-  const errorMsg = {
-    code: BizCode.SYSTEM_INTERNAL_ERROR,
-    message: "Internal server error",
-  };
-  const res = buildFailure(errorMsg, meta);
-  return c.json(res, 500);
-});
-
-app.notFound((c) => {
-  const errorMsg = {
-    code: BizCode.COMMON_NOT_FOUND,
-    message: "Not found",
-  };
-  const res = buildFailure(errorMsg, createMeta());
-  return c.json(res, 404);
-});
-
-app.route("/", routes);
-
-export type AppType = typeof routes;
-
-export default app;
+export type AppType = typeof app;
